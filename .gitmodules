@@ -1,0 +1,4 @@
+[submodule "grf-py"]
+	path = grf-py
+	url = https://github.com/citymania-org/grf-py.git
+	branch = main
