@@ -1,2 +1,4 @@
 .cache
 *.grf
+*.log
+*.tar
