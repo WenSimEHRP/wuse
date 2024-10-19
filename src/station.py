@@ -204,7 +204,7 @@ class RoadDeco(RoadStop):
                             always_transparent=False,
                             no_transparent=False,
                         ),
-                        "add": grf.Temp(0 if i == 4 else 1),
+                        "add": grf.Temp(0x80 if i == 4 else 0x81),
                     },
                 ],
             )
@@ -213,13 +213,13 @@ class RoadDeco(RoadStop):
         }
 
         def get_tile_id(x: int, y: int):
-            return f"var(0x68, param=({LayoutOperation.calculate_offset(x, y)}), shift=0, and=0xF)"
+            return f"var(0x6B, param=({LayoutOperation.calculate_offset(x, y)}), shift=0, and=0xFFFF)"
 
         res.append(
             layout := grf.Switch(
                 feature=self.FEATURE,
                 related_scope=False,
-                code=("TEMP[1] = formation_1()", "TEMP[0] = formation_0()", "view"),
+                code=("TEMP[0x81] = formation_1()", "TEMP[0x80] = formation_0()", "view"),
                 ranges={**layouts},
                 default=next(iter(layouts.values()), None),
                 subroutines={
