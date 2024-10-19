@@ -89,6 +89,7 @@ class SequenceManager:
         self.new_len += i
         return current_len
 
+
 class StringManager(SequenceManager):
     CLASS_STRING_OFFSET = 0xDC00
 
@@ -98,7 +99,9 @@ class StringManager(SequenceManager):
     def index(self, s: str) -> int:
         return super().index(s) + self.CLASS_STRING_OFFSET
 
+
 class_string_manager = StringManager()
+
 
 class RoadStop(grf.SpriteGenerator):
     FEATURE = grf.ROAD_STOP
@@ -118,6 +121,7 @@ class RoadStop(grf.SpriteGenerator):
     def get_sprites(self, g) -> list:
         raise NotImplementedError
 
+
 class RoadDeco(RoadStop):
     def __init__(
         self,
@@ -135,11 +139,16 @@ class RoadDeco(RoadStop):
     def get_sprites(self, g) -> list:
         res = []  # to return this thing
 
-        assert len(self.sprites) % 2 == 0, f"Sprites must be in pairs, got {len(self.sprites)}"
+        assert (
+            len(self.sprites) % 2 == 0
+        ), f"Sprites must be in pairs, got {len(self.sprites)}"
 
         res.append(
             grf.Action1(
-                feature=grf.ROAD_STOP, set_count=2, sprite_count=len(self.sprites) // 2, first_set=0
+                feature=grf.ROAD_STOP,
+                set_count=2,
+                sprite_count=len(self.sprites) // 2,
+                first_set=0,
             )
         )
         res.extend(self.sprites)
@@ -197,23 +206,20 @@ class RoadDeco(RoadStop):
                         ),
                         "add": grf.Temp(0 if i == 4 else 1),
                     },
-                ]
+                ],
             )
             for i, val in enumerate(road_ground_tiles)
             if i in (4, 5)
         }
 
-        def get_tile_id(x: int ,y: int):
+        def get_tile_id(x: int, y: int):
             return f"var(0x68, param=({LayoutOperation.calculate_offset(x, y)}), shift=0, and=0xF)"
 
         res.append(
             layout := grf.Switch(
                 feature=self.FEATURE,
                 related_scope=False,
-                code=(
-                    "TEMP[1] = formation_1()",
-                    "TEMP[0] = formation_0()",
-                    "view"),
+                code=("TEMP[1] = formation_1()", "TEMP[0] = formation_0()", "view"),
                 ranges={**layouts},
                 default=next(iter(layouts.values()), None),
                 subroutines={
@@ -221,17 +227,21 @@ class RoadDeco(RoadStop):
                         feature=self.FEATURE,
                         related_scope=False,
                         ranges={},
-                        code=(f"({get_tile_id(0,0)} == {get_tile_id(0,-1)}) + ({get_tile_id(0,0)} == {get_tile_id(0,1)}) * 2"),
+                        code=(
+                            f"({get_tile_id(0,0)} == {get_tile_id(0,-1)}) + ({get_tile_id(0,0)} == {get_tile_id(0,1)}) * 2"
+                        ),
                         default=0,
                     ),
                     "formation_1": grf.Switch(
                         feature=self.FEATURE,
                         related_scope=False,
                         ranges={},
-                        code=(f"({get_tile_id(0,0)} == {get_tile_id(-1,0)}) + ({get_tile_id(0,0)} == {get_tile_id(1,0)}) * 2"),
+                        code=(
+                            f"({get_tile_id(0,0)} == {get_tile_id(-1,0)}) + ({get_tile_id(0,0)} == {get_tile_id(1,0)}) * 2"
+                        ),
                         default=0,
-                    )
-                }
+                    ),
+                },
             )
         )
 
@@ -249,15 +259,16 @@ class RoadDeco(RoadStop):
 def tmpl_pullouts(x, func):
     ls = []
     for i in range(7):
-        ls.append(func(80 * x*4     + 16, 32 * i*2       + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+1) + 16, 32 * i*2       + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+2) + 16, 32 * i*2       + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+3) + 16, 32 * i*2       + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * x*4     + 16, 32 * (i*2 + 1) + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+1) + 16, 32 * (i*2 + 1) + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+2) + 16, 32 * (i*2 + 1) + 33, 64, 31, xofs=-31, yofs=0))
-        ls.append(func(80 * (x*4+3) + 16, 32 * (i*2 + 1) + 33, 64, 31, xofs=-31, yofs=0))
+        ls += [
+            func(80 * (x * 4 + j) + 16, 32 * i * 2 + 33, 64, 31, xofs=-31, yofs=0)
+            for j in range(4)
+        ]
+        ls += [
+            func(80 * (x * 4 + j) + 16, 32 * (i * 2 + 1) + 33, 64, 31, xofs=-31, yofs=0)
+            for j in range(4)
+        ]
     return ls
+
 
 pullouts_png = grf.ImageFile("gfx/u-ratt-pullouts.png")  # TODO finish
 sprites = [
@@ -282,9 +293,12 @@ stops = [
         class_name="Station",
         class_label=b"STAT",
         name="Sample station",
-        id=id_manager.new(), # wow new id!
+        id=id_manager.new(),  # wow new id!
         sprites=packed_sprites,
-    ) for packed_sprites in [sprites[i:i+8] for i in range(0, len(sprites), 8)]  # 8 sprites per station
+    )
+    for packed_sprites in [
+        sprites[i : i + 8] for i in range(0, len(sprites), 8)
+    ]  # 8 sprites per station
 ]
 
 g.add(*stops)
