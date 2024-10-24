@@ -1,84 +1,14 @@
 import grf
-
-road_ground_tiles = (
-    ("bay_ne", 0xA84),
-    ("bay_se", 0xA85),
-    ("bay_nw", 0xA86),
-    ("bay_sw", 0xA87),
-    ("pass_ne_sw", 0x522),
-    ("pass_nw_se", 0x521),
-)
-
-
-class LayoutOperation:
-    @staticmethod
-    def rotate(
-        offset: tuple[int, int, int], extent: tuple[int, int, int], angle: int
-    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
-        match angle % 4:
-            case 0:
-                return offset, extent
-            case 1 | -3:
-                return (offset[1], -offset[0], offset[2]), (
-                    extent[1],
-                    extent[0],
-                    extent[2],
-                )
-            case 2 | -2:
-                return (-offset[0], -offset[1], offset[2]), (
-                    extent[0],
-                    extent[1],
-                    extent[2],
-                )
-            case 3 | -1:
-                return (-offset[1], offset[0], offset[2]), (
-                    extent[1],
-                    extent[0],
-                    extent[2],
-                )
-        raise ValueError(f"Invalid angle: {angle}")
-
-    @staticmethod
-    def flip(
-        offset: tuple[int, int, int], extent: tuple[int, int, int], axis: int
-    ) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
-        match axis:
-            case 0 | "x" | "X":
-                return (-offset[0], offset[1], offset[2]), (
-                    extent[0],
-                    extent[1],
-                    extent[2],
-                )
-            case 1 | "y" | "Y":
-                return (offset[0], -offset[1], offset[2]), (
-                    extent[0],
-                    extent[1],
-                    extent[2],
-                )
-            case 2 | "z" | "Z":
-                return (offset[0], offset[1], -offset[2]), (
-                    extent[0],
-                    extent[1],
-                    extent[2],
-                )
-        raise ValueError(f"Invalid axis: {axis}")
-
-    @staticmethod
-    def calculate_offset(x, y):
-        # Convert x and y to their respective nibbles
-        high_nibble = x & 0x0F
-        low_nibble = y & 0x0F
-
-        # Combine the high and low nibbles into a single byte
-        offset = (high_nibble << 4) | low_nibble
-
-        return offset
+from abc import ABC, abstractmethod
+from . import wlayout
 
 
 class SequenceManager:
+    labels = {}
+    new_len = 0
+
     def __init__(self) -> None:
-        self.labels = {}
-        self.new_len = 0
+        pass
 
     def index(self, s: str) -> int:
         self.labels[s] = self.labels.get(s, len(self.labels))
@@ -90,7 +20,7 @@ class SequenceManager:
         return current_len
 
 
-class StringManager(SequenceManager):
+class StringManagerDC00(SequenceManager):
     CLASS_STRING_OFFSET = 0xDC00
 
     def __init__(self) -> None:
@@ -100,160 +30,173 @@ class StringManager(SequenceManager):
         return super().index(s) + self.CLASS_STRING_OFFSET
 
 
-class_string_manager = StringManager()
-
-
-class RoadStop(grf.SpriteGenerator):
+class RoadStop(ABC, grf.SpriteGeneraor):
     FEATURE = grf.ROAD_STOP
 
-    def __init__(
-        self, callbacks, props, class_name, class_label, sprite_layouts, name, id=None
-    ) -> None:
-        super().__init__()
-        self.callbacks = grf.make_callback_manager(grf.ROAD_STOP, callbacks)
-        self.id: int = id
-        self.name: str = name
-        self.sprite_layouts: dict[str, grf.AdvancedSpriteLayout] = sprite_layouts
-        self.class_label: bytes = grf.to_bytes(class_label)
-        self.class_name: str = class_name
-        self._props = props
-
+    @abstractmethod
     def get_sprites(self, g) -> list:
         raise NotImplementedError
 
+    @abstractmethod
+    def layouts(self) -> list:
+        raise NotImplementedError
 
-class RoadDeco(RoadStop):
+
+class BoundingBoxMixin:
+    """Bounding box format: offset: tuple(x, y, z), extent: tuple(x, y, z)"""
+
     def __init__(
         self,
-        callbacks,
-        class_name,
-        class_label,
-        sprites: list[grf.FileSprite],
-        name,
-        props={},
-        id=None,
+        offset: tuple[int, int, int] = (0, 0, 0),
+        extent: tuple[int, int, int] = (16, 16, 16),
     ):
-        super().__init__(callbacks, props, class_name, class_label, None, name, id)
-        self.sprites = sprites
+        self.offset = offset
+        self.extent = extent
 
-    def get_sprites(self, g) -> list:
-        res = []  # to return this thing
 
-        assert (
-            len(self.sprites) % 2 == 0
-        ), f"Sprites must be in pairs, got {len(self.sprites)}"
+class RegistersMixin:
+    """Register format: key: code"""
 
-        res.append(
-            grf.Action1(
-                feature=grf.ROAD_STOP,
-                set_count=2,
-                sprite_count=len(self.sprites) // 2,
-                first_set=0,
-            )
-        )
-        res.extend(self.sprites)
+    def __init__(self, registers: dict):
+        from grf.parser import parse_code
 
-        # strings
-        for s in (self.name, self.class_name):
-            if s in class_string_manager.labels:
-                continue
-            res.append(
-                grf.DefineStrings(
-                    feature=self.FEATURE,
-                    offset=class_string_manager.index(s),
-                    is_generic_offset=True,
-                    strings=[s.encode("utf-8")],
-                )
-            )
+        for code in registers.values():
+            if parse_code(grf.ROAD_STOP, code) is None:
+                raise ValueError(f"Invalid code: {code}")
 
-        res.append(
-            definition := grf.Define(
-                feature=self.FEATURE,
-                id=self.id,
-                props={
-                    "class_label": self.class_label,
-                    "name_id": class_string_manager.index(self.name),
-                    "class_name_id": class_string_manager.index(self.class_name),
-                    "general_flags": 0b00001000,
-                    "draw_mode": 4,
-                    **self._props,
-                },
-            )
-        )
-
-        layouts = {
-            i: grf.AdvancedSpriteLayout(
-                feature=grf.ROAD_STOP,
-                ground={
-                    "sprite": grf.SpriteRef(
-                        id=val[1],
-                        pal=0,
-                        is_global=True,
-                        use_recolour=False,
-                        always_transparent=False,
-                        no_transparent=False,
-                    ),
-                },
-                buildings=[
-                    {
-                        "sprite": grf.SpriteRef(
-                            id=0 if i == 4 else 1,
-                            pal=0,
-                            is_global=False,
-                            use_recolour=False,
-                            always_transparent=False,
-                            no_transparent=False,
-                        ),
-                        "add": grf.Temp(0x80 if i == 4 else 0x81),
-                    },
-                ],
-            )
-            for i, val in enumerate(road_ground_tiles)
-            if i in (4, 5)
+        self.registers = {
+            "x_left": None,
+            "x_right": None,
+            "y_left": None,
+            "y_right": None,
+            **registers,
         }
 
-        def get_tile_id(x: int, y: int):
-            return f"var(0x6B, param=({LayoutOperation.calculate_offset(x, y)}), shift=0, and=0xFFFF)"
 
-        res.append(
-            layout := grf.Switch(
-                feature=self.FEATURE,
-                related_scope=False,
-                code=("TEMP[0x81] = formation_1()", "TEMP[0x80] = formation_0()", "view"),
-                ranges={**layouts},
-                default=next(iter(layouts.values()), None),
-                subroutines={
-                    "formation_0": grf.Switch(
-                        feature=self.FEATURE,
-                        related_scope=False,
-                        ranges={},
-                        code=(
-                            f"({get_tile_id(0,0)} == {get_tile_id(0,-1)}) + ({get_tile_id(0,0)} == {get_tile_id(0,1)}) * 2"
-                        ),
-                        default=0,
-                    ),
-                    "formation_1": grf.Switch(
-                        feature=self.FEATURE,
-                        related_scope=False,
-                        ranges={},
-                        code=(
-                            f"({get_tile_id(0,0)} == {get_tile_id(-1,0)}) + ({get_tile_id(0,0)} == {get_tile_id(1,0)}) * 2"
-                        ),
-                        default=0,
-                    ),
-                },
-            )
+class SpriteMixin:
+    def __init__(self, sprites):
+        assert isinstance(sprites, list) or isinstance(sprites, grf.FileSprite)
+        self.sprites = sprites
+
+
+class RoadDecoModeMixin:
+    def __init__(self, mode: dict):
+        self.mode = {"generate": True, "flip": False, **mode}
+        self._layouts = None
+
+    @property
+    def layouts(self, offset, extent):
+        if self._layouts is not None:
+            return self._layouts
+        # four layouts
+        res = {}
+        res["x_left"] = {
+            "offset": offset,
+            "extent": extent,
+        }
+        res["y_left"] = (
+            {
+                "offset": wlayout.rotate(offset, "y", 1),
+                "extent": wlayout.rotate(extent, "y", 1),
+            },
         )
-
-        res.append(
-            grf.Map(
-                definition,
-                {},
-                layout,
-            )
-        )
-
+        if self.mode["generate"]:
+            res["x_right"] = {
+                "offset": wlayout.flip(offset, "x")
+                if self.mode["flip"]
+                else wlayout.rotate(offset, "x", 2),
+                "extent": wlayout.flip(extent, "x")
+                if self.mode["flip"]
+                else wlayout.rotate(extent, "x", 2),
+            }
+            res["y_right"] = {
+                "offset": wlayout.flip(wlayout.rotate(offset, "y", -1), "y")
+                if self.mode["flip"]
+                else wlayout.rotate(offset, "y", -1),
+                "extent": wlayout.flip(wlayout.rotate(extent, "y", -1), "y")
+                if self.mode["flip"]
+                else wlayout.rotate(extent, "y", -1),
+            }
+        self._layout = res
         return res
+
+
+class RoadDecoBuilding(
+    BoundingBoxMixin, RegistersMixin, SpriteMixin, RoadDecoModeMixin
+):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class RoadDecoBuildingSet:
+    def __init__(self, sprites: dict[str, grf.FileSprite], **kwargs):
+        self.sprites = {
+            "x_left": None,
+            "x_right": None,
+            "y_left": None,
+            "y_right": None,
+            **sprites,
+        }
+        assert all(i is not None for i in self.sprites), "Sprites must be defined"
+
+    @property
+    def sprite_count():
+        return len(self.sprites) #XXX
+
+
+class RoadStopDefineMixin:
+    def __init__(self, props, class_name, class_label, id):
+        self.props = props
+        self.class_name = class_name
+        self.class_label = class_label
+        self.id = id
+        self._definition = None
+        self.string_man = StringManagerDC00
+        self.sprite_man = SequenceManager()
+        self.temp_man = SequenceManager()
+
+    @property
+    def definition(self):
+        if self._definition is not None:
+            return self._definition
+        self._definition = grf.Define(
+            feature=self.FEATURE,
+            id=self.id,
+            props={
+                "class_label": self.class_label,
+                "name_id": self.string_man.index(self.name),
+                "class_name_id": self.string_man.index(self.class_name),
+                **self._props,
+            },
+        )
+        return self._definition
+
+
+class RoadDeco(RoadStop, RoadStopDefineMixin):
+    def __init__(
+        self,
+        callbacks: list,
+        buildings: RoadDecoBuildingSet,
+        **kwargs,
+    ):
+        self.callbacks = grf.make_callback_manager(grf.ROAD_STOP, callbacks)
+        self.buildings = buildings
+        super().__init__(**kwargs)
+
+    def _make_realsprites(self):
+        res = []
+        res.append(
+            grf.Action1(
+                feature=self.FEATURE,
+                sprite_count=
+            )
+        )
+
+    def get_sprites(self, g):
+        res = []
+
+
+
 
 
 def tmpl_pullouts(x, func):
