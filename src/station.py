@@ -26,11 +26,43 @@ class StringManagerDC00(SequenceManager):
     def __init__(self) -> None:
         super().__init__()
 
-    def index(self, s: str) -> int:
-        return super().index(s) + self.CLASS_STRING_OFFSET
+    @classmethod
+    def index(cls, s: str) -> int:
+        return super().index(s) + cls.CLASS_STRING_OFFSET
 
 
-class RoadStop(ABC, grf.SpriteGeneraor):
+class RoadStopDefineMixin:
+    def __init__(self, props, class_name, class_label, id):
+        self.props = props
+        self.class_name = class_name
+        self.class_label = class_label
+        assert len(id) == 4
+        self.id = id
+        self._definition = None
+        self.string_man = StringManagerDC00
+
+    @property
+    def definition(self):
+        if self._definition is not None:
+            return self._definition
+        self._definition = grf.Define(
+            feature=self.FEATURE,
+            id=self.id,
+            props={
+                "class_label": self.class_label,
+                "name_id": self.string_man.index(self.name),
+                "class_name_id": self.string_man.index(self.class_name),
+                **self._props,
+            },
+        )
+        return self._definition
+
+    @property
+    def is_waypoint(self):
+        return self.class_label == b"WAYP" or self.class_label.startswith(b"\xff")
+
+
+class RoadStop(ABC, grf.SpriteGenerator, RoadStopDefineMixin):
     FEATURE = grf.ROAD_STOP
 
     @abstractmethod
@@ -74,9 +106,15 @@ class RegistersMixin:
 
 
 class SpriteMixin:
-    def __init__(self, sprites):
-        assert isinstance(sprites, list) or isinstance(sprites, grf.FileSprite)
-        self.sprites = sprites
+    def __init__(self, sprites: dict):
+        # no more checks!
+        self.sprites = {
+            "x_left": None,
+            "x_right": None,
+            "y_left": None,
+            "y_right": None,
+            **sprites,
+        }
 
 
 class RoadDecoModeMixin:
@@ -126,53 +164,26 @@ class RoadDecoBuilding(
 ):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._sprite_count = None
+
+    @property
+    def sprite_count(self):
+        if self._sprite_count is not None:
+            return self._sprite_count
+        self._sprite_count = sum(len(i) for i in self.sprites.values() if i is not None)
+        return self._sprite_count
 
 
 class RoadDecoBuildingSet:
-    def __init__(self, sprites: dict[str, grf.FileSprite], **kwargs):
-        self.sprites = {
-            "x_left": None,
-            "x_right": None,
-            "y_left": None,
-            "y_right": None,
-            **sprites,
-        }
-        assert all(i is not None for i in self.sprites), "Sprites must be defined"
+    def __init__(self, *buildings):
+        self.buildings = buildings
 
     @property
-    def sprite_count():
-        return len(self.sprites) #XXX
+    def sprite_count(self):
+        return sum(i.sprite_count for i in self.buildings)
 
 
-class RoadStopDefineMixin:
-    def __init__(self, props, class_name, class_label, id):
-        self.props = props
-        self.class_name = class_name
-        self.class_label = class_label
-        self.id = id
-        self._definition = None
-        self.string_man = StringManagerDC00
-        self.sprite_man = SequenceManager()
-        self.temp_man = SequenceManager()
-
-    @property
-    def definition(self):
-        if self._definition is not None:
-            return self._definition
-        self._definition = grf.Define(
-            feature=self.FEATURE,
-            id=self.id,
-            props={
-                "class_label": self.class_label,
-                "name_id": self.string_man.index(self.name),
-                "class_name_id": self.string_man.index(self.class_name),
-                **self._props,
-            },
-        )
-        return self._definition
-
-
-class RoadDeco(RoadStop, RoadStopDefineMixin):
+class RoadDeco(RoadStop):
     def __init__(
         self,
         callbacks: list,
@@ -188,15 +199,13 @@ class RoadDeco(RoadStop, RoadStopDefineMixin):
         res.append(
             grf.Action1(
                 feature=self.FEATURE,
-                sprite_count=
+                sprite_count=None,  # XXX
             )
         )
 
     def get_sprites(self, g):
         res = []
-
-
-
+        return res
 
 
 def tmpl_pullouts(x, func):
