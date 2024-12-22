@@ -1,0 +1,135 @@
+roadtypetable{
+    // standard roads
+    ORD0,ORD1,ORD2,ORD3,
+    SRD0,SRD1,SRD2,SRD3,
+    TRD0,
+    ARD0,ARD1,ARD2,ARD3,ARD4,
+    WRD0,WRD1,
+    URD0,URD1,URD2,URD3,URD4,URD5,URD6,
+    DRD0,DRD1,DRD2,DRD3,DRD4,DRD5,DRD6,
+    // electrified roads
+    ELRD,AER0,AER2,AER3,UER0,UER1,UER5,
+    // tram tracks
+    RAIL,ELRL,TRL0,TEL0,UEL0,UEL1,UEL2,DRL0,DEL0
+}
+
+#define POS_N_coor -1,-1
+#define POS_NE_coor 0,-1
+#define POS_E_coor 1,-1
+#define POS_SE_coor 1,0
+#define POS_S_coor 1,1
+#define POS_SW_coor 0,1
+#define POS_W_coor -1,1
+#define POS_NW_coor -1,0
+#define POS_C_coor 0,0
+
+${position_enums}
+
+${bit_enums}
+
+${roadtype_enums}
+${tramtype_enums}
+
+${tempstore_enums}
+const CALLBACK_FAILED = 0x100; // this was reserved because this value was never used
+
+switch(FEAT_ROADSTOPS, SELF, sw_ORD1_out_town, town_zone) {
+    TOWNZONE_EDGE: ORD1_out_town_value;
+    default: ORD1_in_town_value;
+}
+
+switch(FEAT_ROADSTOPS, SELF, sw_TRD0_out_town, town_zone) {
+    TOWNZONE_EDGE: TRD0_out_town_value;
+    default: TRD0_in_town_value;
+}
+
+// some roads have special conditions, e.g. town roads change its appearance depending on the era
+switch (FEAT_ROADSTOPS, SELF, sw_roadtype_translation, road_type) {
+    ${roadtype_switch_cases}
+    default: CALLBACK_FAILED; // failed
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_tramtype_translation, tram_type) {
+    ${tramtype_switch_cases}
+    default: CALLBACK_FAILED; // failed
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_determine_setup, b,
+    view == RST_VIEW_DRIVE_THROUGH_X ?
+        (!nearby_tile_different_view(POS_NE_coor) && hasbit(nearby_tile_road_stop_id(POS_NE_coor), b) << 0) |
+        (!nearby_tile_different_view(POS_SW_coor) && hasbit(nearby_tile_road_stop_id(POS_SW_coor), b) << 1)
+    : view == RST_VIEW_DRIVE_THROUGH_Y ?
+        (!nearby_tile_different_view(POS_NW_coor) && hasbit(nearby_tile_road_stop_id(POS_NW_coor), b) << 0) |
+        (!nearby_tile_different_view(POS_SE_coor) && hasbit(nearby_tile_road_stop_id(POS_SE_coor), b) << 1)
+    : CALLBACK_FAILED // failed
+) {return;}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_normal_climates, terrain_type) {
+    TILETYPE_DESERT: GROUNDSPRITE_DESERT;
+    default: GROUNDSPRITE_NORMAL;
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_town_zone_view, view) {
+    RST_VIEW_DRIVE_THROUGH_X: 1314;
+    RST_VIEW_DRIVE_THROUGH_Y: 1313;
+    default: CALLBACK_FAILED;
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_town_zone, town_zone) {
+    TOWNZONE_EDGE: sw_ground_normal_climates();
+    default: sw_ground_town_zone_view();
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic_town_zone, s, town_zone) {
+    TOWNZONE_EDGE: s;
+    default: sw_ground_town_zone_view();
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic, [nearby_tile_height(0, 0) - snowline_height]) {
+    2..255: GROUNDSPRITE_SNOW;
+    1: GROUNDSPRITE_SNOW_3_4;
+    0: sw_ground_arctic_town_zone(GROUNDSPRITE_SNOW_2_4);
+    -1: sw_ground_arctic_town_zone(GROUNDSPRITE_SNOW_1_4);
+    default: sw_ground_arctic_town_zone(GROUNDSPRITE_NORMAL);
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground, climate) {
+    CLIMATE_ARCTIC: sw_ground_arctic();
+    default: sw_ground_town_zone();
+}
+
+// general pullouts
+
+spritelayout sp_pullout_x() {
+    ground {sprite: LOAD_TEMP(SW_GROUND);}
+    // childsprite {sprite: LOAD_TEMP(s_pullouts(SW_ROADTYPE * 12 + 0 + LOAD_TEMP(SW_SETUP_N_PLAT)));}
+    // childsprite {sprite: LOAD_TEMP(s_pullouts(SW_ROADTYPE * 12 + 3 + LOAD_TEMP(SW_SETUP_S_PLAT)));}
+}
+
+spritelayout sp_pullout_y() {
+    ground {sprite: LOAD_TEMP(SW_GROUND);}
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, [
+    STORE_TEMP(sw_roadtype_translation(), SW_ROADTYPE),
+    STORE_TEMP(sw_tramtype_translation(), SW_TRAMTYPE),
+    STORE_TEMP(sw_determine_setup(BIT_N_PLAT), SW_SETUP_N_PLAT),
+    STORE_TEMP(sw_determine_setup(BIT_S_PLAT), SW_SETUP_S_PLAT),
+    STORE_TEMP(sw_ground(), SW_GROUND),
+    STORE_TEMP(view, SW_VIEW),
+    view,
+]) {
+    RST_VIEW_DRIVE_THROUGH_X: sp_pullout_x();
+    default: sp_pullout_y();
+}
+
+item(FEAT_ROADSTOPS, test) {
+    property {
+        class: "WUSE";
+        name: string(STR_GRF_NAME);
+        general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
+    }
+    graphics {
+        default: sw_pullout_entrypoint();
+    }
+}

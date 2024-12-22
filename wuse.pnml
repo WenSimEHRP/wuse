@@ -1,0 +1,3 @@
+#include "src/header.pnml"
+#include "src/spriteset.pnml"
+#include "src/switches.pnml"

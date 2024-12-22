@@ -1,0 +1,239 @@
+roadtypetable{
+    // standard roads
+    ORD0,ORD1,ORD2,ORD3,
+    SRD0,SRD1,SRD2,SRD3,
+    TRD0,
+    ARD0,ARD1,ARD2,ARD3,ARD4,
+    WRD0,WRD1,
+    URD0,URD1,URD2,URD3,URD4,URD5,URD6,
+    DRD0,DRD1,DRD2,DRD3,DRD4,DRD5,DRD6,
+    // electrified roads
+    ELRD,AER0,AER2,AER3,UER0,UER1,UER5,
+    // tram tracks
+    RAIL,ELRL,TRL0,TEL0,UEL0,UEL1,UEL2,DRL0,DEL0
+}
+
+#define POS_N_coor -1,-1
+#define POS_NE_coor 0,-1
+#define POS_E_coor 1,-1
+#define POS_SE_coor 1,0
+#define POS_S_coor 1,1
+#define POS_SW_coor 0,1
+#define POS_W_coor -1,1
+#define POS_NW_coor -1,0
+#define POS_C_coor 0,0
+
+const POS_N = 0;
+const POS_NE = 1;
+const POS_E = 2;
+const POS_SE = 3;
+const POS_S = 4;
+const POS_SW = 5;
+const POS_W = 6;
+const POS_NW = 7;
+const POS_C = 8;
+
+const BIT_N_PLAT = 0;
+const BIT_S_PLAT = 1;
+
+const ORD0_value = 0;
+const ORD1_out_town_value = 1;
+const ORD1_in_town_value = 2;
+const ORD2_value = 3;
+const ORD3_value = 4;
+const SRD0_value = 5;
+const SRD1_value = 6;
+const SRD2_value = 7;
+const SRD3_value = 8;
+const TRD0_out_town_value = 9;
+const TRD0_in_town_value = 10;
+const ARD0_value = 11;
+const ARD1_value = 12;
+const ARD2_value = 13;
+const ARD3_value = 14;
+const ARD4_value = 15;
+const WRD0_value = 16;
+const WRD1_value = 17;
+const URD0_value = 18;
+const URD1_value = 19;
+const URD2_value = 20;
+const URD3_value = 21;
+const URD4_value = 22;
+const URD5_value = 23;
+const URD6_value = 24;
+const DRD0_value = 25;
+const DRD1_value = 26;
+const DRD2_value = 27;
+const DRD3_value = 28;
+const DRD4_value = 29;
+const DRD5_value = 30;
+const DRD6_value = 31;
+const ELRD_value = 32;
+const AER0_value = 33;
+const AER2_value = 34;
+const AER3_value = 35;
+const UER0_value = 36;
+const UER1_value = 37;
+const UER5_value = 38;
+const RAIL_value = 0;
+const ELRL_value = 1;
+const TRL0_value = 2;
+const TEL0_value = 3;
+const UEL0_value = 4;
+const UEL1_value = 5;
+const UEL2_value = 6;
+const DRL0_value = 7;
+const DEL0_value = 8;
+
+const SW_ROADTYPE = 0;
+const SW_TRAMTYPE = 1;
+const SW_VIEW = 2;
+const SW_SETUP_N_PLAT = 3;
+const SW_SETUP_S_PLAT = 4;
+const SW_GROUND = 5;
+const CALLBACK_FAILED = 0x100; // this was reserved because this value was never used
+
+switch(FEAT_ROADSTOPS, SELF, sw_ORD1_out_town, town_zone) {
+    TOWNZONE_EDGE: ORD1_out_town_value;
+    default: ORD1_in_town_value;
+}
+
+switch(FEAT_ROADSTOPS, SELF, sw_TRD0_out_town, town_zone) {
+    TOWNZONE_EDGE: TRD0_out_town_value;
+    default: TRD0_in_town_value;
+}
+
+// some roads have special conditions, e.g. town roads change its appearance depending on the era
+switch (FEAT_ROADSTOPS, SELF, sw_roadtype_translation, road_type) {
+    ORD0: 0;
+ORD1: sw_ORD1_out_town();
+ORD2: 3;
+ORD3: 4;
+SRD0: 5;
+SRD1: 6;
+SRD2: 7;
+SRD3: 8;
+TRD0: sw_TRD0_out_town();
+ARD0: 11;
+ARD1: 12;
+ARD2: 13;
+ARD3: 14;
+ARD4: 15;
+WRD0: 16;
+WRD1: 17;
+URD0: 18;
+URD1: 19;
+URD2: 20;
+URD3: 21;
+URD4: 22;
+URD5: 23;
+URD6: 24;
+DRD0: 25;
+DRD1: 26;
+DRD2: 27;
+DRD3: 28;
+DRD4: 29;
+DRD5: 30;
+DRD6: 31;
+ELRD: 32;
+AER0: 33;
+AER2: 34;
+AER3: 35;
+UER0: 36;
+UER1: 37;
+UER5: 38;
+    default: CALLBACK_FAILED; // failed
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_tramtype_translation, tram_type) {
+    RAIL: 0;
+ELRL: 1;
+TRL0: 2;
+TEL0: 3;
+UEL0: 4;
+UEL1: 5;
+UEL2: 6;
+DRL0: 7;
+DEL0: 8;
+    default: CALLBACK_FAILED; // failed
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_determine_setup, b,
+    view == RST_VIEW_DRIVE_THROUGH_X ?
+        (!nearby_tile_different_view(POS_NE_coor) && hasbit(nearby_tile_road_stop_id(POS_NE_coor), b) << 0) |
+        (!nearby_tile_different_view(POS_SW_coor) && hasbit(nearby_tile_road_stop_id(POS_SW_coor), b) << 1)
+    : view == RST_VIEW_DRIVE_THROUGH_Y ?
+        (!nearby_tile_different_view(POS_NW_coor) && hasbit(nearby_tile_road_stop_id(POS_NW_coor), b) << 0) |
+        (!nearby_tile_different_view(POS_SE_coor) && hasbit(nearby_tile_road_stop_id(POS_SE_coor), b) << 1)
+    : CALLBACK_FAILED // failed
+) {return;}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_normal_climates, terrain_type) {
+    TILETYPE_DESERT: GROUNDSPRITE_DESERT;
+    default: GROUNDSPRITE_NORMAL;
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_town_zone_view, view) {
+    RST_VIEW_DRIVE_THROUGH_X: 1314;
+    RST_VIEW_DRIVE_THROUGH_Y: 1313;
+    default: CALLBACK_FAILED;
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_town_zone, town_zone) {
+    TOWNZONE_EDGE: sw_ground_normal_climates();
+    default: sw_ground_town_zone_view();
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic_town_zone, s, town_zone) {
+    TOWNZONE_EDGE: s;
+    default: sw_ground_town_zone_view();
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic, [nearby_tile_height(0, 0) - snowline_height]) {
+    2..255: GROUNDSPRITE_SNOW;
+    1: GROUNDSPRITE_SNOW_3_4;
+    0: sw_ground_arctic_town_zone(GROUNDSPRITE_SNOW_2_4);
+    -1: sw_ground_arctic_town_zone(GROUNDSPRITE_SNOW_1_4);
+    default: sw_ground_arctic_town_zone(GROUNDSPRITE_NORMAL);
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_ground, climate) {
+    CLIMATE_ARCTIC: sw_ground_arctic();
+    default: sw_ground_town_zone();
+}
+
+// general pullouts
+
+spritelayout sp_pullout_x() {
+    ground {sprite: LOAD_TEMP(SW_GROUND);}
+    // childsprite {sprite: LOAD_TEMP(s_pullouts(SW_ROADTYPE * 12 + 0 + LOAD_TEMP(SW_SETUP_N_PLAT)));}
+    // childsprite {sprite: LOAD_TEMP(s_pullouts(SW_ROADTYPE * 12 + 3 + LOAD_TEMP(SW_SETUP_S_PLAT)));}
+}
+
+spritelayout sp_pullout_y() {
+    ground {sprite: LOAD_TEMP(SW_GROUND);}
+}
+
+switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, [
+    STORE_TEMP(sw_roadtype_translation(), SW_ROADTYPE),
+    STORE_TEMP(sw_tramtype_translation(), SW_TRAMTYPE),
+    STORE_TEMP(sw_determine_setup(BIT_N_PLAT), SW_SETUP_N_PLAT),
+    STORE_TEMP(sw_determine_setup(BIT_S_PLAT), SW_SETUP_S_PLAT),
+    STORE_TEMP(sw_ground(), SW_GROUND),
+    STORE_TEMP(view, SW_VIEW),
+    view,
+]) {
+    RST_VIEW_DRIVE_THROUGH_X: sp_pullout_x();
+    default: sp_pullout_y();
+}
+
+item(FEAT_ROADSTOPS, test) {
+    property {
+        class: "WUSE";
+        name: string(STR_GRF_NAME);
+        general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
+    }
+    graphics {
+        default: sw_pullout_entrypoint();
+    }
+}
