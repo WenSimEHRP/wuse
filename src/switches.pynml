@@ -25,7 +25,7 @@ switch(FEAT_ROADSTOPS, SELF, sw_ROAD_conditional, town_zone) {
 
 switch(FEAT_ROADSTOPS, SELF, sw_TRD0_conditional, town_zone) {
     TOWNZONE_EDGE: TRD0_cond_0_value;
-    default: TRD0_cond_0_value;
+    default: TRD0_cond_1_value;
 }
 
 // some roads have special conditions, e.g. town roads change its appearance depending on the era
@@ -70,7 +70,7 @@ switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic_town_zone, s, town_zone) {
     default: sw_ground_town_zone_view();
 }
 
-switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic, [nearby_tile_height(0, 0) - snowline_height]) {
+switch (FEAT_ROADSTOPS, SELF, sw_ground_arctic, [nearby_tile_height(POS_C_coor) - snowline_height]) {
     2..255: GROUNDSPRITE_SNOW;
     1: GROUNDSPRITE_SNOW_3_4;
     0: sw_ground_arctic_town_zone(GROUNDSPRITE_SNOW_2_4);
@@ -87,8 +87,8 @@ switch (FEAT_ROADSTOPS, SELF, sw_ground, climate) {
 
 spritelayout sp_pullout_x() {
     ground {sprite: LOAD_TEMP(SW_GROUND);}
-    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * 8 + LOAD_TEMP(SW_SETUP_N_PLAT) + 0); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_N_PLAT); always_draw: 1;}
-    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * 8 + LOAD_TEMP(SW_SETUP_S_PLAT) + 4); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_S_PLAT); always_draw: 1;}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_N_PLAT) + 0); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_N_PLAT); always_draw: 1;}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_S_PLAT) + 4); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_S_PLAT); always_draw: 1;}
 }
 
 spritelayout sp_pullout_y() {
@@ -110,7 +110,7 @@ switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, [
 
 item(FEAT_ROADSTOPS, test1, 1) {
     property {
-        class: "WUSE";
+        class: 0x535557FF; // "\xffWUS"
         name: string(STR_GRF_NAME);
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }
@@ -121,7 +121,7 @@ item(FEAT_ROADSTOPS, test1, 1) {
 
 item(FEAT_ROADSTOPS, test2, 2) {
     property {
-        class: "WUSE";
+        class: 0x535557FF;
         name: string(STR_GRF_NAME);
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }
@@ -132,7 +132,7 @@ item(FEAT_ROADSTOPS, test2, 2) {
 
 item(FEAT_ROADSTOPS, test3, 3) {
     property {
-        class: "WUSE";
+        class: 0x535557FF;
         name: string(STR_GRF_NAME);
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }

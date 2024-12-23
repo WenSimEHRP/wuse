@@ -43,3 +43,5 @@ spriteset(s_pullouts) {
     [5 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
 }
 #undef EMPTY
+
+#define SPRITE_PER_PULLOUT_GROUP 8
