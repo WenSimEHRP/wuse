@@ -1,10 +1,11 @@
 from string import Template
+import re
 
 class LabelEnums:
     def __init__(self, labels):
         self.labels = labels
         self.enums = {label: ind for ind, label in enumerate(labels)}
-        self.switch_string_dict = self.construct_string("${ind}: ${val};")
+        self.switch_string_dict = self.construct_string("${ind}: ${ind}_value;")
         self.enum_string_dict = self.construct_string("const ${ind}_value = ${val};")
         self.enum_string_dict_no_value = self.construct_string("const ${ind} = ${val};")
         self.define_string_dict = self.construct_string("#define ${ind} ${val}")
@@ -25,10 +26,11 @@ class LabelEnums:
         for ind, val in self.switch_string_dict.items():
             if val is None:
                 continue
-            if ind.endswith("_in_town"):
+            if ind.endswith("_cond_0"):
+                basename = ind.replace("_cond_0", "")
+                a.append(f"{basename}: sw_{basename}_conditional();")
+            elif re.match(r".*cond_\d+$", ind):
                 continue
-            elif ind.endswith("_out_town"):
-                a.append(f"{ind.replace("_out_town", "")}: sw_{ind}();")
             else:
                 a.append(val)
         return "\n".join(a)
@@ -50,16 +52,16 @@ class LabelEnums:
 
 road_labels = (
     "ORD0",  # FIELD ROAD
-    "ORD1_out_town",  # DIRT ROAD
-    "ORD1_in_town",
+    "ROAD_cond_0",  # DIRT ROAD
+    "ROAD_cond_1",
     "ORD2",  # SAND ROAD
     "ORD3",  # GRAVEL ROAD
     "SRD0",  # PAVED STONE ROAD
     "SRD1",  # CONCRETE ROAD
     "SRD2",  # CONCRETE SLAB OF ROAD
     "SRD3",  # CONCRETE SLAB OF ROAD
-    "TRD0_out_town",  # TOWN ROAD, has special conditions
-    "TRD0_in_town",
+    "TRD0_cond_0",  # TOWN ROAD, has special conditions
+    "TRD0_cond_1",
     "ARD0",  # ASPHALT ROAD
     "ARD1",  # ASPHALT ROAD W/LINES
     "ARD2",  # ROAD CLASS B

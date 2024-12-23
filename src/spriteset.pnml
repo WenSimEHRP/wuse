@@ -1,0 +1,45 @@
+#define EMPTY \
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+
+spriteset(s_pullouts) {
+    EMPTY
+    []
+    [0 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    [1 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    [2 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    []
+    [3 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    [4 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    [5 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0001.png"]
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    EMPTY
+    []
+    [0 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+    [1 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+    [2 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+    []
+    [3 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+    [4 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+    [5 * 64 ,0 ,64 ,31 ,-31, 0, "gfx/Sprite-0002.png"]
+}
+#undef EMPTY
