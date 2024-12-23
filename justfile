@@ -11,7 +11,12 @@ preprocess:
 
 build:
     nml/nmlc -c --list-unused-strings {{GRF}}.nml --nml={{GRF}}_parsed.nml --grf={{GRF}}.grf
-    md5sum {{GRF}}_parsed.nml >> build.log
+    md5sum {{GRF}}.grf >> build.log
+    date +'%Y%m%d%H%M%S' >> build.log
+
+test:
+    nml/nmlc -c --list-unused-strings {{GRF}}_parsed.nml --grf={{GRF}}.grf
+    md5sum {{GRF}}.grf >> build.log
     date +'%Y%m%d%H%M%S' >> build.log
 
 clean:
