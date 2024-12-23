@@ -2,3 +2,4 @@
 *.grf
 *.nml
 *.log
+src/switches.pnml
