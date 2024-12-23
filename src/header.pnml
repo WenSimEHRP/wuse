@@ -5,3 +5,36 @@ grf {
     version:                1;
     min_compatible_version: 1;
 }
+
+// warn if not openttd...
+if (ttd_platform != PLATFORM_OPENTTD) {
+    error(FATAL, USED_WITH, "OpenTTD");
+}
+
+// requires at least openttd 15.0... most JGRPP versions should be compatible
+if (openttd_version < version_openttd(15, 0)) {
+    error(FATAL, REQUIRES_OPENTTD, "15.0");
+}
+
+// warn if u&ratt is not available
+if ((grf_future_status("\55\46\49\89") == 0) *
+    (grf_future_status("\55\46\49\88") == 0) *
+    (grf_future_status("\5f\5f\02\04") == 0)) {
+    error(ERROR, USED_WITH, string(U_RATT));
+}
+
+roadtypetable{
+    // standard roads
+    ROAD, // dirt road
+    ORD0,ORD1,ORD2,ORD3,
+    SRD0,SRD1,SRD2,SRD3,
+    TRD0,
+    ARD0,ARD1,ARD2,ARD3,ARD4,
+    WRD0,WRD1,
+    URD0,URD1,URD2,URD3,URD4,URD5,URD6,
+    DRD0,DRD1,DRD2,DRD3,DRD4,DRD5,DRD6,
+    // electrified roads
+    ELRD,AER0,AER2,AER3,UER0,UER1,UER5,
+    // tram tracks
+    RAIL,ELRL,TRL0,TEL0,UEL0,UEL1,UEL2,DRL0,DEL0
+}
