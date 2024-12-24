@@ -3,3 +3,5 @@
 *.nml
 *.log
 src/switches.pnml
+
+*.pyc
