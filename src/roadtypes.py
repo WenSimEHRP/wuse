@@ -69,8 +69,8 @@ road_labels = (
     "ARD4",  # ROAD CLASS A
     "WRD0",  # HIGHWAY
     "WRD1",  # EXPRESSWAY
-    "URD0",  # RESIDENTIAL ROAD
-    "URD1",  # URBAN ROAD
+    ("URD0", "URD1"),  # RESIDENTIAL ROAD
+    # "URD1",  # URBAN ROAD
     "URD2",  # GREEN ROAD
     "URD3",  # RED ROAD
     "URD4",  # GRAY PAVEMENT

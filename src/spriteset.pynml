@@ -1,3 +1,21 @@
+#define EMPTY \
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+[]\
+
 spriteset(s_pullouts) {
-    ${pullout_sprites}
+    ${entries}
 }
+#undef EMPTY
+
+spriteset(s_grid) {
+    [0,0,64,31,-31,0,"gfx/grid.png"]
+    [64,0,64,31,-31,0,"gfx/grid.png"]
+}
+
+#define SPRITE_PER_PULLOUT_GROUP 8

@@ -7,6 +7,7 @@ def: preprocess build
 
 preprocess:
     python3 src/roadtypes.py
+    python3 src/spritesets.py
     gcc -E -x c {{GRF}}.pnml > {{GRF}}.nml
 
 build:
