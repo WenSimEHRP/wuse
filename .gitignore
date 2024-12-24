@@ -3,5 +3,6 @@
 *.nml
 *.log
 src/switches.pnml
+src/spriteset.pnml
 
 *.pyc
