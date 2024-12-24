@@ -85,17 +85,19 @@ switch (FEAT_ROADSTOPS, SELF, sw_ground, climate) {
 
 // general pullouts
 
-spritelayout sp_pullout_x() {
+spritelayout sp_pullout_x(id) {
     ground {sprite: LOAD_TEMP(SW_GROUND);}
-    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_N_PLAT) + 0); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_N_PLAT); always_draw: 1;}
-    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_S_PLAT) + 4); hide_sprite: !hasbit(nearby_tile_road_stop_id(POS_C_coor), BIT_S_PLAT); always_draw: 1;}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_N_PLAT) + 0); hide_sprite: !hasbit(id, BIT_N_PLAT); always_draw: 1;}
+    childsprite {sprite: s_grid(0); hide_sprite: (!hasbit(id, BIT_N_PLAT) || (LOAD_TEMP(SW_SETUP_N_PLAT) != 3)); always_draw: 1;}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_S_PLAT) + 4); hide_sprite: !hasbit(id, BIT_S_PLAT); always_draw: 1;}
+    childsprite {sprite: s_grid(1); hide_sprite: (!hasbit(id, BIT_S_PLAT) || (LOAD_TEMP(SW_SETUP_S_PLAT) != 3)); always_draw: 1;}
 }
 
-spritelayout sp_pullout_y() {
+spritelayout sp_pullout_y(id) {
     ground {sprite: LOAD_TEMP(SW_GROUND);}
 }
 
-switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, [
+switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, id, [
     STORE_TEMP(sw_roadtype_translation(), SW_ROADTYPE),
     STORE_TEMP(sw_tramtype_translation(), SW_TRAMTYPE),
     STORE_TEMP(sw_determine_setup(BIT_N_PLAT), SW_SETUP_N_PLAT),
@@ -104,8 +106,8 @@ switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, [
     STORE_TEMP(view, SW_VIEW),
     view,
 ]) {
-    RST_VIEW_DRIVE_THROUGH_X: sp_pullout_x();
-    default: sp_pullout_y();
+    RST_VIEW_DRIVE_THROUGH_X: sp_pullout_x(id);
+    default: sp_pullout_y(id);
 }
 
 item(FEAT_ROADSTOPS, test1, 1) {
@@ -115,7 +117,7 @@ item(FEAT_ROADSTOPS, test1, 1) {
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }
     graphics {
-        default: sw_pullout_entrypoint();
+        default: sw_pullout_entrypoint(1);
     }
 }
 
@@ -126,7 +128,7 @@ item(FEAT_ROADSTOPS, test2, 2) {
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }
     graphics {
-        default: sw_pullout_entrypoint();
+        default: sw_pullout_entrypoint(2);
     }
 }
 
@@ -137,6 +139,6 @@ item(FEAT_ROADSTOPS, test3, 3) {
         general_flags: bitmask(RST_GENERAL_FLAG_DRIVE_THROUGH_ONLY);
     }
     graphics {
-        default: sw_pullout_entrypoint();
+        default: sw_pullout_entrypoint(3);
     }
 }
