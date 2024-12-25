@@ -18,4 +18,4 @@ spriteset(s_grid) {
     [64,0,64,31,-31,0,"gfx/grid.png"]
 }
 
-#define SPRITE_PER_PULLOUT_GROUP 8
+#define SPRITE_PER_PULLOUT_GROUP ${entry_count}

@@ -6,8 +6,9 @@ def: preprocess build
     @echo "Finished building"
 
 preprocess:
-    python3 src/roadtypes.py
-    python3 src/spritesets.py
+    python3 scripts/roadtypes.py
+    python3 scripts/spritesets.py
+    python3 scripts/dup.py
     gcc -E -x c {{GRF}}.pnml > {{GRF}}.nml
 
 build:

@@ -1,5 +1,5 @@
 from string import Template
-from roadtypes import LabelEnums, road_enum, tram_enum
+from roadtypes import road_enum, tram_enum
 import glob
 
 entry_format = Template("[$x * 64, $y * 31, 64 ,31 ,-31, 0, \"$path\"]")
@@ -7,14 +7,7 @@ entry_empty = "[]"
 
 def complete_entry(path):
     a = [
-        entry_format.substitute(x=0, y=0, path=path),
-        entry_format.substitute(x=1, y=0, path=path),
-        entry_format.substitute(x=2, y=0, path=path),
-        entry_format.substitute(x=3, y=0, path=path),
-        entry_format.substitute(x=4, y=0, path=path),
-        entry_format.substitute(x=5, y=0, path=path),
-        entry_format.substitute(x=6, y=0, path=path),
-        entry_format.substitute(x=7, y=0, path=path),
+        entry_format.substitute(x=x, y=y, path=path) for y in range(2) for x in range(8)
     ]
     return a
 
@@ -47,7 +40,7 @@ for road in roads:
             entries.append(entry_empty)
         continue
     for i in range(entries_len):
-        entries.append(complete_entry(f"gfx/{road}.png")[i])
+        entries.append(complete_entry(f"gfx/p/{road}.png")[i])
 
 with open("src/spriteset.pnml", "w+") as f:
-    f.write(template_data.substitute(entries="\n".join(entries)))
+    f.write(template_data.substitute(entries="\n".join(entries), entry_count=str(entries_len)))

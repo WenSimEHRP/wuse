@@ -88,13 +88,13 @@ switch (FEAT_ROADSTOPS, SELF, sw_ground, climate) {
 spritelayout sp_pullout_x(id) {
     ground {sprite: LOAD_TEMP(SW_GROUND);}
     childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_N_PLAT) + 0); hide_sprite: !hasbit(id, BIT_N_PLAT); always_draw: 1;}
-    childsprite {sprite: s_grid(0); hide_sprite: (!hasbit(id, BIT_N_PLAT) || (LOAD_TEMP(SW_SETUP_N_PLAT) != 3)); always_draw: 1;}
     childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_S_PLAT) + 4); hide_sprite: !hasbit(id, BIT_S_PLAT); always_draw: 1;}
-    childsprite {sprite: s_grid(1); hide_sprite: (!hasbit(id, BIT_S_PLAT) || (LOAD_TEMP(SW_SETUP_S_PLAT) != 3)); always_draw: 1;}
 }
 
 spritelayout sp_pullout_y(id) {
     ground {sprite: LOAD_TEMP(SW_GROUND);}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_N_PLAT) + 0 + (SPRITE_PER_PULLOUT_GROUP / 2)); hide_sprite: !hasbit(id, BIT_N_PLAT); always_draw: 1;}
+    childsprite {sprite: s_pullouts(LOAD_TEMP(SW_ROADTYPE) * SPRITE_PER_PULLOUT_GROUP + LOAD_TEMP(SW_SETUP_S_PLAT) + 4 + (SPRITE_PER_PULLOUT_GROUP / 2)); hide_sprite: !hasbit(id, BIT_S_PLAT); always_draw: 1;}
 }
 
 switch (FEAT_ROADSTOPS, SELF, sw_pullout_entrypoint, id, [
