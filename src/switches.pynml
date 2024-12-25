@@ -28,6 +28,11 @@ switch(FEAT_ROADSTOPS, SELF, sw_TRD0_conditional, town_zone) {
     default: TRD0_cond_1_value;
 }
 
+switch(FEAT_ROADSTOPS, SELF, sw_WRD0_conditional, current_year) {
+    0..1979: WRD0_cond_0_value;
+    default: WRD0_cond_1_value;
+}
+
 // some roads have special conditions, e.g. town roads change its appearance depending on the era
 switch (FEAT_ROADSTOPS, SELF, sw_roadtype_translation, road_type) {
     ${roadtype_switch_cases}

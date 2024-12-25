@@ -1,6 +1,7 @@
 from string import Template
 import re
 
+
 class LabelEnums:
     def __init__(self, labels):
         self.labels = labels
@@ -50,9 +51,10 @@ class LabelEnums:
         a = [i for i in self.define_string_dict.values() if i is not None]
         return "\n".join(a)
 
+
 road_labels = (
     "ORD0",  # FIELD ROAD
-    "ROAD_cond_0",  # DIRT ROAD
+    "ROAD_cond_0",  # DIRT ROAD (0RD1)
     "ROAD_cond_1",
     "ORD2",  # SAND ROAD
     "ORD3",  # GRAVEL ROAD
@@ -60,17 +62,17 @@ road_labels = (
     "SRD1",  # CONCRETE ROAD
     "SRD2",  # CONCRETE SLAB OF ROAD
     "SRD3",  # CONCRETE SLAB OF ROAD
-    "TRD0_cond_0",  # TOWN ROAD, has special conditions
+    "TRD0_cond_0",  # TOWN ROAD
     "TRD0_cond_1",
     "ARD0",  # ASPHALT ROAD
     "ARD1",  # ASPHALT ROAD W/LINES
     "ARD2",  # ROAD CLASS B
     "ARD3",  # ROAD CLASS B
     "ARD4",  # ROAD CLASS A
-    "WRD0",  # HIGHWAY
+    "WRD0_cond_0",  # HIGHWAY
+    "WRD0_cond_1",  # HIGHWAY
     "WRD1",  # EXPRESSWAY
-    ("URD0", "URD1"),  # RESIDENTIAL ROAD
-    # "URD1",  # URBAN ROAD
+    ("URD0", "URD1"),  # RESIDENTIAL ROAD & URBAN ROAD
     "URD2",  # GREEN ROAD
     "URD3",  # RED ROAD
     "URD4",  # GRAY PAVEMENT
@@ -93,23 +95,40 @@ road_labels = (
 )
 road_enum = LabelEnums(road_labels)
 
-temp_registers = ("SW_ROADTYPE", "SW_TRAMTYPE", "SW_VIEW", "SW_SETUP_N_PLAT", "SW_SETUP_S_PLAT", "SW_GROUND")
+temp_registers = (
+    "SW_ROADTYPE",
+    "SW_TRAMTYPE",
+    "SW_VIEW",
+    "SW_SETUP_N_PLAT",
+    "SW_SETUP_S_PLAT",
+    "SW_GROUND",
+)
 temp_enum = LabelEnums(temp_registers)
 
 tram_labels = (
-    "RAIL", # TRAM TRACK
-    "ELRL", # TRAM TRACK (ELECTRIFIED)
-    "TRL0", # MODERN TRAM TRACK
-    "TEL0", # MODERN TRAM TRACK (ELECTRIFIED)
-    "UEL0", # URBAN TRAM TRACK (ELECTRIFIED)
-    "UEL1", # RED TRAM TRACK (ELECTRIFIED)
-    "UEL2", # GREEN TRAM TRACK (ELECTRIFIED)
-    "DRL0", # ISR TRAM TRACK
-    "DEL0", # ISR TRAM TRACK (ELECTRIFIED)
+    "RAIL",  # TRAM TRACK
+    "ELRL",  # TRAM TRACK (ELECTRIFIED)
+    "TRL0",  # MODERN TRAM TRACK
+    "TEL0",  # MODERN TRAM TRACK (ELECTRIFIED)
+    "UEL0",  # URBAN TRAM TRACK (ELECTRIFIED)
+    "UEL1",  # RED TRAM TRACK (ELECTRIFIED)
+    "UEL2",  # GREEN TRAM TRACK (ELECTRIFIED)
+    "DRL0",  # ISR TRAM TRACK
+    "DEL0",  # ISR TRAM TRACK (ELECTRIFIED)
 )
 tram_enum = LabelEnums(tram_labels)
 
-position_labels = ("POS_N","POS_NE","POS_E","POS_SE","POS_S","POS_SW","POS_W","POS_NW","POS_C")
+position_labels = (
+    "POS_N",
+    "POS_NE",
+    "POS_E",
+    "POS_SE",
+    "POS_S",
+    "POS_SW",
+    "POS_W",
+    "POS_NW",
+    "POS_C",
+)
 position_enum = LabelEnums(position_labels)
 
 bit_enum = LabelEnums(("BIT_N_PLAT", "BIT_S_PLAT"))

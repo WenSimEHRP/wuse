@@ -3,6 +3,7 @@ from roadtypes import road_enum, tram_enum
 from PIL import Image
 import glob
 import os
+
 png_files = []
 
 keys = set(road_enum.enums.keys())
@@ -14,7 +15,6 @@ for file in glob.glob("gfx/*.png"):
     name = file.split("/")[-1].split(".")[0]
     if name not in keys:
         continue
-    print(name)
     png_files.append(file)
 
 # ensure the folder exists
@@ -27,7 +27,7 @@ for file in png_files:
         # mirror the chunks and paste them on the bottom of the original image
         # save the image
         w, h = img.size
-        new_img = Image.new('P', (w, h * 2))
+        new_img = Image.new("P", (w, h * 2))
         new_img.putpalette(img.getpalette())
         new_img.paste(img, (0, 0))
 
