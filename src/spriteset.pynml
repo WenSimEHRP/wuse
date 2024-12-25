@@ -1,17 +1,6 @@
-#define EMPTY \
-[]\
-[]\
-[]\
-[]\
-[]\
-[]\
-[]\
-[]\
-
 spriteset(s_pullouts) {
     ${entries}
 }
-#undef EMPTY
 
 spriteset(s_grid) {
     [0,0,64,31,-31,0,"gfx/grid.png"]
